@@ -69,15 +69,7 @@ struct SearchThread : jthread
     u64 numNodes{};
 #endif
 
-    struct Entry
-    {
-        u64 hsh;
-        struct /*PriotizedMoves*/
-        {
-            Position pos;
-            int sortPrio, move;
-        } moves[128];
-    } stack[128];
+    u64 hsh[128]; // stack
 
     SearchThread() :
         jthread([=, this] { iterativeM4ssaging(); }),
@@ -87,10 +79,9 @@ struct SearchThread : jthread
     template<bool QSEARCH = 0, bool ROOT = 0>
     s16 negaMax(const Position& pos, s16 alpha, s16 beta, s16 plyDist_ROOT, char depth)
     {
-        Entry& s(stack[plyDist_ROOT]);
         TTDataEntry ttData, t;
         s16 alphaOrig = alpha, val = -SCORE_INFINITY, phase;
-        Move m{};
+        Move move{};
         char cnt{};
 
         if (TIME_UP)
@@ -103,14 +94,14 @@ struct SearchThread : jthread
 #ifndef DISABLE_TT
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         ///////////////////////////////////////////////////////////////////////////////////////////////// TT READ
-        s.hsh = makeHash(pos);
+        hsh[plyDist_ROOT] = makeHash(pos);
 
         for (auto i = plyDist_ROOT - 2; i >= 0; i--)
-            if (s.hsh == stack[i].hsh)
+            if (hsh[plyDist_ROOT] == hsh[i])
                 return 0; // repetition
 
         IFC (!ROOT /*&& !QSEARCH*/)
-            loadTTEntry(s.hsh, ttData);
+            loadTTEntry(hsh[plyDist_ROOT], ttData);
 
         if (ttData.depth >= 0 && ttData.movePlayedCnt)
             return 0; // repetition
@@ -123,8 +114,10 @@ struct SearchThread : jthread
             if (alpha >= beta || ttData.leap & LEAP_EQUAL)
                 return ttData.score;
         }
-        else if (depth > 4 && (index + depth) & 1)
+#ifndef TEST
+        else if (depth > 4 && index + depth & 1)
             depth--;
+#endif
         ///////////////////////////////////////////////////////////////////////////////////////////////// TT READ
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #endif
@@ -154,25 +147,32 @@ struct SearchThread : jthread
             // "If the root becomes a terminal node, the game is finished."
             return QSEARCH? alpha : inCheck? -(SCORE_MATE - plyDist_ROOT) : 0;
         
+        struct /*PriotizedMoves*/
+        {
+            Position pos;
+            int sortPrio, move;
+        } smoves[128];
+
         // make lazy SMP speedy
-        phase = pos.getPhase() - 128 + (index + plyDist_ROOT) % NUM_THREADS * 256 / NUM_THREADS;
+        phase = pos.getPhase() + 64 - (index + plyDist_ROOT) % NUM_THREADS * 128 / NUM_THREADS;
         for (auto i = 0; i < moves.cnt; i++)
         {
-            s.moves[cnt].pos = pos;
-            s.moves[cnt].pos.makeMove(moves.entries[i]);
-            if (!QSEARCH || s.moves[cnt].pos.flags || inCheck)
-                s.moves[cnt].sortPrio = moves.entries[i] == ttData.move? -(1 << 30) : s.moves[cnt].pos.evaluateFast(phase),
-                s.moves[cnt++].move = moves.entries[i];
+            smoves[cnt].pos = pos;
+            smoves[cnt].pos.makeMove(moves.entries[i]);
+            if (!QSEARCH || smoves[cnt].pos.flags || inCheck)
+                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * (i + 1) * index % 1024,
+//                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + (i + 1) * 79 * (index + plyDist_ROOT) % 512,
+                smoves[cnt++].move = moves.entries[i];
         }
 
         // move sorting
-        sort(s.moves, s.moves + cnt, [](auto& c, auto& i) { return c.sortPrio < i.sortPrio; });
+        sort(smoves, smoves + cnt, [](auto& c, auto& i) { return c.sortPrio < i.sortPrio; });
 
         // eval moves
         for (auto i = 0; i < cnt; i++)
         {
             ////////////////////////////////////////////////////////////////////////////////////////
-            s16 t = -negaMax<QSEARCH>(s.moves[i].pos, -beta, -alpha, plyDist_ROOT + 1, depth - 1);
+            s16 t = -negaMax<QSEARCH>(smoves[i].pos, -beta, -alpha, plyDist_ROOT + 1, depth - 1);
             ////////////////////////////////////////////////////////////////////////////////////////
             IFC (QSEARCH)
             {
@@ -183,10 +183,10 @@ struct SearchThread : jthread
             else if (t > val)
             {
                 val = t;
-                m = s.moves[i].move;
+                move = smoves[i].move;
 
                 IFC (ROOT)
-                    bestMove = m;
+                    bestMove = move;
 
                 alpha = max(alpha, val);
                 if (alpha >= beta)
@@ -205,15 +205,15 @@ struct SearchThread : jthread
             alphaOrig = alpha;
 
         // check whether in the meantime the TT slot was updated by a deeper search
-        loadTTEntry(s.hsh, t);
+        loadTTEntry(hsh[plyDist_ROOT], t);
         if (ROOT || t.depth > ttData.depth)
             return val;
 
         // don't overwrite entries with a higher depth or repetition entries
         if (ttData.depth <= depth && !ttData.movePlayedCnt && (val <= -SCORE_MATE + plyDist_ROOT || val > -30000))
-            storeTTEntry(s.hsh, { depth, 0, char(val <= alphaOrig ? LEAP_UPPER :
-                                                 val >= beta      ? LEAP_LOWER :
-                                                                    LEAP_EQUAL), m, val } );
+            storeTTEntry(hsh[plyDist_ROOT], { depth, 0, char(val <= alphaOrig ? LEAP_UPPER :
+                                                             val >= beta      ? LEAP_LOWER :
+                                                                                LEAP_EQUAL), move, val } );
 
         ///////////////////////////////////////////////////////////////////////////////////////////////// TT WRITE
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -311,7 +311,7 @@ Move findBestMove()
     auto deepestSearch = 0;
     auto bestMv = 0;
     for (auto& t : threads)
-        if (t.confirmedBestDeep > deepestSearch)
+        if (t.confirmedBestDeep > deepestSearch /*&& t.confirmedBestMove*/)
 #ifdef DUMP
         {
 #endif
