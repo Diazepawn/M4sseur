@@ -113,8 +113,8 @@ char* strPtr;
 
 void readUCILine()
 {
-//    memset(strBuf, 0, 30000);
-    for (auto& t : strBuf) t = 0;
+    memset(strBuf, 0, 30000);
+//    for (auto& t : strBuf) t = 0;
 
     strPtr = strBuf;
     while ((*strPtr++ = getchar()) != 10 /*'\n'*/)
