@@ -6,7 +6,7 @@ Stronk 4k chess engine written by Maik Guntermann (Germany) in C++20
 
 - Heavy optimized plain vanilla Negamax (Alpha-Beta) search using lazy SMP and a new approach for move-ordering (improving Multitasking performance)
 - Simple but effective evaluation function
-- For TCEC build, the transposition table ("Hash Map") size is 64 GB and 52 threads are used
+- For TCEC build, the transposition table ("Hash Map") size is 64 GB and 103 threads are used
 - Other builds uses 8 GB/8 threads by default
 
 ---
