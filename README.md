@@ -15,7 +15,7 @@ Stronk 4k chess engine written by Maik Guntermann (Germany) in C++20
 
 Currently, the final TCEC version can be build on Linux by:
 ```
-lbuild_tcec.sh
+./lbuild_tcec.sh
 ```
 (creates the executable file `./M4sseur_tcec`)
 
@@ -23,7 +23,7 @@ lbuild_tcec.sh
 
 A 'non-4k' version can be build either on Linux by:
 ```
-lbuild_linux.sh
+./lbuild_linux.sh
 ```
 
 or on Windows by:
