@@ -18,7 +18,7 @@
 // Activate for TCEC build!
 /////////////////////////////////////////
 #if 1
-  #define RESET_NUM_THREADS "52"s
+  #define RESET_NUM_THREADS "103"s
   #define RESET_TTSIZE "0x100000000ull"s
 #endif
 /////////////////////////////////////////
@@ -65,7 +65,7 @@ constexpr auto shortNameChars_size = sizeof(shortNameChars) - 1;
           char shortNameCharsL2a[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefgyijklmnozqrswuvthxp";
 constexpr auto shortNameCharsL2a_size = sizeof(shortNameCharsL2a) - 1;
 
-          char shortNameCharsL2b[] = /*"wxyz";*/  "xphtHdlz";
+          char shortNameCharsL2b[] = /*"wxyz";*/  /*"xphtHdlz"*/ "pxhtHdlz";
 constexpr auto shortNameCharsL2b_size = sizeof(shortNameCharsL2b) - 1;
 
 StringSet shortnamesUsed;
@@ -192,22 +192,29 @@ static void addReplacementShortnames()
     replaceShortname("posDest", "ttData");
     replaceShortname("pieceSrc", "t");
     replaceShortname("pieceDest", "m");
+
+    // search
     replaceShortname("iterate", "dir");
     replaceShortname("alphaOrig", "maskDest");
     replaceShortname("confirmedBestMove", "maskSrc");
     replaceShortname("confirmedBestDeep", "kingsSquare");
+    replaceShortname("smoves", "func");
 
+    // getPinnedMask
     replaceShortname("itersL", "c");
     replaceShortname("itersR", "score");
     replaceShortname("itersD", "moves");
     replaceShortname("itersU", "alpha");
+    replaceShortname("numIters", "func");
+    replaceShortname("file", "depth");
+    replaceShortname("rank", "cnt");
+    replaceShortname("straightDiagMask", "maskSrc");
+    replaceShortname("o", "maskDest");
 
     replaceShortname("attackMap", "alpha");
     replaceShortname("getPhase", "entries");
 
     replaceShortname("strLiteral", "m");
-    replaceShortname("file", "depth");
-    replaceShortname("rank", "cnt");
 
     replaceShortname("sw", "alpha");
     replaceShortname("mw", "beta");
@@ -216,6 +223,7 @@ static void addReplacementShortnames()
     replaceShortname("bestMv", "beta");
 
     replaceShortname("scorePieces", "func");
+
 }
 
 static void setPaths(const char* srcPath, const char* outPath)
