@@ -39,6 +39,8 @@ int main(
         printf("Arg#%d = %s\n", i, argv[i]);
 #endif
 
+    memset(&ttable[0], 0, TTSize * 16);
+
     rootPosition.setStartpos();                             //@-
 
 #ifdef TEST
@@ -62,8 +64,8 @@ int main(
 #endif
 
     // --- Send UCI info and "uciok"
-    printf("id name M4sseur\nid author Maik Guntermann\nuciok\n");
-//    printf("id name M4sseur\nuciok\n");
+//    printf("id name M4sseur\nid author Maik Guntermann\nuciok\n");
+    printf("id name M4sseur\nuciok\n");
     // -----------------------------------------------------------
     for (;;)
     {
