@@ -299,7 +299,7 @@ struct Position
             for (auto i = 0; i < numIters[dir]; i++, s += t[dir])
             {
                 assert(s >= 0 && s < 64);
-                auto m = mkmsk(s);
+                Mask m = mkmsk(s);
                 if (m & _c(BLACK))
                     break;
 
