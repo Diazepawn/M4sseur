@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ./lbuild_linux_nanonizer.sh
 ./nanonizer_gcc
 ./compress.sh
