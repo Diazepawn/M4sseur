@@ -83,7 +83,7 @@ int main(
             while (*strPtr)
                 if (119 - 21 * rootPosition.flipped == *strPtr++)
                 {
-                    thinkTime = atoi(strPtr + 5) / 31000. + 3;
+                    thinkTime = atoi(strPtr + 5) / 30000. + 4;
                     break;
                 }
 
