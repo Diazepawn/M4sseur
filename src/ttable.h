@@ -134,33 +134,34 @@ u64 makeHash(const Position& pos)
 #endif
 }
 
-void loadTTEntry(u64 m, TTDataEntry& data)
+void loadTTEntry(u64 m, TTDataEntry& dat)
 {
 #if 1
-    u64 ttHash = ttable[m % TTSize].hsh.load(memory_order_relaxed); // .load(mor) very important i.o. to prevent gaps, see assembly
-    u64 ttData = ttable[m % TTSize].dat.load(memory_order_relaxed);
+    // .load(memory_order_..) very important i.o. to prevent gaps in between loads, see assembly
+    u64 ttHash = ttable[m % TTSize].hsh.load(memory_order_relaxed),
+        ttData = ttable[m % TTSize].dat.load(memory_order_relaxed);
 #else
-    u64 ttHash = ttable[m % TTSize].hsh; // .load(memory_order_..) very important i.o. to prevent gaps in between loads, see assembly
+    u64 ttHash = ttable[m % TTSize].hsh;
     u64 ttData = ttable[m % TTSize].dat;
 #endif
 
     // Note: TTDataEntry::depth will be -1 if load wasn't ok (messed up hash due to race condition or TT Entry not present)
     //       *ANYHOW*, the data part is important as it might contain the important "movePlayedCnt" value that prevents repetitions;
     //                 never overwrite these entries
-    *((u64*)&data) = ttData;
+    *(u64*)&dat = ttData;
     if ((ttHash ^ ttData) != m)
-        data.depth = -1, data.move = 0;
+        dat.depth = -1, dat.move = 0;
 }
 
 // Note: Even if the load fails, TTDataEntry::movePlayedCnt can be checked before
 //       overwriting a possible played move (important for repetition recognition)
-void storeTTEntry(u64 m, TTDataEntry data)
+void storeTTEntry(u64 m, TTDataEntry dat)
 {
 #if 1
-    ttable[m % TTSize].hsh.store(m ^ data, memory_order_relaxed);
-    ttable[m % TTSize].dat.store(data, memory_order_relaxed);
+    ttable[m % TTSize].hsh.store(m ^ dat, memory_order_relaxed);
+    ttable[m % TTSize].dat.store(dat, memory_order_relaxed);
 #else
-    ttable[m % TTSize].hsh = m ^ data;
-    ttable[m % TTSize].dat = data;
+    ttable[m % TTSize].hsh = m ^ dat;
+    ttable[m % TTSize].dat = dat;
 #endif
 }

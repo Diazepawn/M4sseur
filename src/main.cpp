@@ -1,7 +1,7 @@
 
 //////////////////// Enable to get PV/NPS/Depth/NodeCount info during the game ///////
-//#define TRACK_PV
-//#define TRACK_ONLY_ESSENTIAL
+#define TRACK_PV
+#define TRACK_ONLY_ESSENTIAL
 //////////////////////////////////////////////////////////////////////////////////////
 
 //#define DUMP
@@ -78,17 +78,22 @@ int main(
             printf("readyok\n");
         if (strCompare("g"/*o*/ ))
         {
-            thinkTime = 30.;                                //@-
-
+            // go and massage some pawns...
+            auto thinkTime = 30.;                           //@-
             while (*strPtr)
                 if (119 - 21 * rootPosition.flipped == *strPtr++)
+#ifdef TCEC
                 {
-                    thinkTime = atoi(strPtr + 5) / 32000. + 4;
+                    printf("bestmove %s\n", convertMoveToText(findBestMove(atoi(strPtr + 5) / 34000. + 2.9)).data());
                     break;
                 }
-
-            // go and massage some pawns...
-            printf("bestmove %s\n", convertMoveToText( findBestMove() ).data());
+#else
+                {
+                    thinkTime = atoi(strPtr + 5) / 34000. + 2.9;
+                    break;
+                }
+            printf("bestmove %s\n", convertMoveToText(findBestMove(thinkTime)).data());
+#endif
         }
         if (strCompare("ucinewgame"))                       //@---
         {

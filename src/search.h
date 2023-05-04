@@ -3,19 +3,19 @@
 
 #ifdef DUMP
   #define TRACK_PV
+  #undef TRACK_ONLY_ESSENTIAL
 #endif
 
 #ifdef TEST
   int test_maxDepth;
 #endif
 
-#define QSEARCH_MAX_DEPTH 12
+#define QSEARCH_MAX_DEPTH 14
 #define MAX_SEARCH_DEPTH 112
 
 
 int plyCounter{};                       //@-
 int currentIndex, TIME_UP;
-flt thinkTime;
 
 
 #ifdef TRACK_PV
@@ -66,7 +66,9 @@ struct SearchThread : jthread
 #endif
 
 #ifdef TRACK_PV
+#ifndef TRACK_ONLY_ESSENTIAL
     u64 numNodes{};
+#endif
 #endif
 
     u64 hsh[128]; // stack
@@ -88,7 +90,9 @@ struct SearchThread : jthread
             return 0;
 
 #ifdef TRACK_PV
+#ifndef TRACK_ONLY_ESSENTIAL
         numNodes++;
+#endif
 #endif
       
 #ifndef DISABLE_TT
@@ -134,7 +138,7 @@ struct SearchThread : jthread
         }
 
         if (!depth)
-            return negaMax<1>(pos, alpha, beta, plyDist_ROOT, QSEARCH_MAX_DEPTH);
+            return negaMax<1>(pos, alpha, beta, plyDist_ROOT, QSEARCH_MAX_DEPTH /*- (index + plyDist_ROOT) * 2 % 8*/);
 
         ////////////////////////////////////////////////////
         MoveList moves;
@@ -154,13 +158,17 @@ struct SearchThread : jthread
         } smoves[128];
 
         // make lazy SMP speedy
-        phase = pos.getPhase() + 64 - (index + plyDist_ROOT) % NUM_THREADS * 128 / NUM_THREADS;
+        //auto index103 = (index * 103) / 15;
+        phase = pos.getPhase() + 48 - (index + plyDist_ROOT) % NUM_THREADS * 96 / NUM_THREADS;
         for (auto i = 0; i < moves.cnt; i++)
         {
             smoves[cnt].pos = pos;
             smoves[cnt].pos.makeMove(moves.entries[i]);
             if (!QSEARCH || smoves[cnt].pos.flags || inCheck)
-                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * (i + 1) * index % 1024,
+                  smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * (cnt + 1) * index % 1024,
+//                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * (i + 1) * index103 % max(512, 1024 - depth * 59),
+//                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * i * (index103 / 2) * ((index103 % 2 * 2) - 1) % max(256, 1024 - plyDist_ROOT * 70),
+//                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * (i + 1) * index % 1024,
 //                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + (i + 1) * 79 * (index + plyDist_ROOT) % 512,
                 smoves[cnt++].move = moves.entries[i];
         }
@@ -261,26 +269,26 @@ struct SearchThread : jthread
                            || depth == test_maxDepth
 #endif
                                                      )
-            {
 #ifndef TRACK_ONLY_ESSENTIAL
+        {
                 auto timeElapsed = duration<flt>(steady_clock::now() - t).count();
                 long long nn = numNodes * NUM_THREADS;
 
                 printf("info depth %d nodes %lld nps %d time %d score cp %d pv %s%s\n",
                     depth, nn, int(nn / timeElapsed), int(timeElapsed * 1000.), bestScore,
                     convertMoveToText(confirmedBestMove).data(), pvString(bestMove, depth).data());
+        }
 #else
-                printf("info depth %d nodes %d score cp %d pv %s\n",
-                    depth, int(numNodes), bestScore, convertMoveToText(confirmedBestMove).data());
+                printf("info depth %d score cp %d pv %s\n",
+                    depth, bestScore, convertMoveToText(confirmedBestMove).data());
 #endif
-            }
 #endif
         }
     }
 };
 
 
-Move findBestMove()
+Move findBestMove(auto thinkTime)
 {
 #ifdef DUMP
 #ifndef TEST
@@ -292,11 +300,14 @@ Move findBestMove()
     currentIndex = TIME_UP = 0;
     vector<SearchThread> threads(NUM_THREADS);
 
+#ifdef TRACK_PV
+#ifndef TRACK_ONLY_ESSENTIAL
     auto t = steady_clock::now();
+#endif
+#endif
 
 #ifndef TEST
-    for (;steady_clock::now() - t < duration<flt>(thinkTime); this_thread::sleep_for(1s))
-        ;
+    this_thread::sleep_until(steady_clock::now() + duration<flt>(thinkTime));
     TIME_UP = 1;
 #endif
 

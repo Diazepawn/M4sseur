@@ -570,7 +570,7 @@ struct SearchTest : Test<SearchTest>
         perfTimePoint t = perfClock::now();                                                                     \
         rootPosition = pos;                                                                                     \
         storeTTEntry(makeHash(rootPosition), { 0, 1 });                                                         \
-        Move m = findBestMove();                                                                                \
+        Move m = findBestMove(.0);                                                                                \
         timeelapsed += chrono::duration_cast<perfDuration>(perfClock::now() - t).count() / 1000.0;              \
         if (!(COND))                                                                                            \
         {                                                                                                       \
@@ -587,7 +587,7 @@ struct SearchTest : Test<SearchTest>
         test_maxDepth = MAXDEPTH;                                                                               \
         perfTimePoint t = perfClock::now();                                                                     \
         rootPosition = pos;                                                                                     \
-        Move m = findBestMove(); /* research with last TT table should be fast */                               \
+        Move m = findBestMove(.0); /* research with last TT table should be fast */                             \
         timeelapsedResearch += chrono::duration_cast<perfDuration>(perfClock::now() - t).count() / 1000.0;      \
         if (!(COND))                                                                                            \
         {                                                                                                       \

@@ -49,7 +49,7 @@ StringVec phase2Out;
 
 StringSet noManglingWords{ "auto", "static", "const", "inline", "std", "chrono", "memset", "getchar", "strncmp", "now", "string",
                            "__builtin_popcountll", "__builtin_bswap64", "__builtin_ctzll", "time_point", "mt19937", "continue",
-                            "sort", "stable_sort", "duration", "milli", "this_thread", "atoi", "sleep_for", "join", "using",
+                            "sort", "stable_sort", "duration", "milli", "this_thread", "atoi", "sleep_for", "sleep_until", "join", "using",
                             "namespace", "strlen", "high_resolution_clock", "double", "atomic", "vector", "load", "store", "main",
                             "setbuf", "stdout", "milliseconds", "abs", "jthread", "min", "max", "long", "char", "sizeof", "swap",
                             "operator", "memory_order_relaxed", "printf", "this", "break", "while", "define", "void", "bool",
@@ -78,18 +78,6 @@ static string makeShortname(int index)
         return string(&shortNameChars[shortNameChars_size - index - 1], 1);
     index -= shortNameChars_size;
 
-/*    for (int i = 0; i < 1; i++)
-    {
-        if (index < shortNameChars_size)
-        {
-            string s = string(&shortNameChars[index], 1) +
-                       string(&shortNameChars[(index + i) % shortNameChars_size], 1);
-            shortnamesUsed.insert(s);
-            return s;
-        }
-        index -= shortNameChars_size;
-    }
-  */
     if (index < shortNameCharsL2a_size * shortNameCharsL2b_size)
     {
         for (;;)
@@ -186,12 +174,13 @@ static void addReplacementShortnames()
     //                  "entries", "func", "dir", "inCheck", "enPassant", "QSEARCH",
     //                  "add", "destMask", "castling", "maskSrc"
     /////////////////////////////////////////////////////////////////////////////////////////////////
+    // Position / makeMove
     replaceShortname("flags", "score");
     replaceShortname("flipped", "alpha");
     replaceShortname("ep", "func");
-    replaceShortname("posDest", "ttData");
+    replaceShortname("posDest", "m");
     replaceShortname("pieceSrc", "t");
-    replaceShortname("pieceDest", "m");
+    replaceShortname("pieceDest", "beta");
 
     // search
     replaceShortname("iterate", "dir");
@@ -199,6 +188,7 @@ static void addReplacementShortnames()
     replaceShortname("confirmedBestMove", "maskSrc");
     replaceShortname("confirmedBestDeep", "kingsSquare");
     replaceShortname("smoves", "func");
+    replaceShortname("plyDist_ROOT", "enPassant");
 
     // getPinnedMask
     replaceShortname("itersL", "c");
@@ -219,11 +209,17 @@ static void addReplacementShortnames()
     replaceShortname("sw", "alpha");
     replaceShortname("mw", "beta");
 
+    // findBestMove
     replaceShortname("deepestSearch", "alpha");
     replaceShortname("bestMv", "beta");
+    replaceShortname("thinkTime", "m");
 
     replaceShortname("scorePieces", "func");
 
+    // loadTTEntry
+    replaceShortname("dat", "c");
+    replaceShortname("ttHash", "i");
+    replaceShortname("ttData", "_c");   // ttData also used in search!
 }
 
 static void setPaths(const char* srcPath, const char* outPath)
@@ -333,11 +329,7 @@ void phase2(const char* outFile)
                 // found word
                 int lastWordPos = i;
                 string word = string(lineBuffer + firstWordPos, lastWordPos - firstWordPos);
-/*                if (word == "1s")
-                {
-                    int t = 0;
-                }
-                */
+
                 // ---- mangling...
                 string replaceWith = findShortWord(word);
                 if (!replaceWith.empty())
@@ -855,6 +847,7 @@ int main()
 {
     setPaths("src", "../nanoout");
 
+    globalDefines_Directive.insert("TCEC"s);     // mark TCEC build
     globalDefines_Directive.insert("NDEBUG"s);   // remove all debugging stuff
     globalDefines_Directive.insert("__GNUC__"s); // compiler is GCC (no need to add version number)
     globalDefines_Directive.insert("1"s);        // for "#if 1" / "#if 0" macros
