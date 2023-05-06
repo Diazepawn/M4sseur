@@ -25,7 +25,7 @@ Score Position::evaluate(
     auto phase = getPhase();
 
     /********************************/
-    Weight score[2][2]{900, 900}; // tempi bonus for side to move
+    Weight score[2][2]{900, 900, 0, 0}; // tempi bonus for side to move
     /********************************/
 
 #ifdef TRAIN

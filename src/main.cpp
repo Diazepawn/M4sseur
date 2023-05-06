@@ -84,12 +84,12 @@ int main(
                 if (119 - 21 * rootPosition.flipped == *strPtr++)
 #ifdef TCEC
                 {
-                    printf("bestmove %s\n", convertMoveToText(findBestMove(atoi(strPtr + 5) / 34000. + 2.9)).data());
+                    printf("bestmove %s\n", convertMoveToText(findBestMove(atoi(strPtr + 5) / 33000. + 2.9)).data());
                     break;
                 }
 #else
                 {
-                    thinkTime = atoi(strPtr + 5) / 34000. + 2.9;
+                    thinkTime = atoi(strPtr + 5) / 33000. + 2.9;
                     break;
                 }
             printf("bestmove %s\n", convertMoveToText(findBestMove(thinkTime)).data());

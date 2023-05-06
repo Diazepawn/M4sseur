@@ -10,7 +10,7 @@
   int test_maxDepth;
 #endif
 
-#define QSEARCH_MAX_DEPTH 14
+#define QSEARCH_MAX_DEPTH 12
 #define MAX_SEARCH_DEPTH 112
 
 
@@ -159,13 +159,14 @@ struct SearchThread : jthread
 
         // make lazy SMP speedy
         //auto index103 = (index * 103) / 15;
-        phase = pos.getPhase() + 48 - (index + plyDist_ROOT) % NUM_THREADS * 96 / NUM_THREADS;
+//        phase = pos.getPhase() + 64 - (index + plyDist_ROOT) % NUM_THREADS * 128 / NUM_THREADS;
+        phase = pos.getPhase() + 64 - (index + plyDist_ROOT) % NUM_THREADS * 128 / NUM_THREADS;
         for (auto i = 0; i < moves.cnt; i++)
         {
             smoves[cnt].pos = pos;
             smoves[cnt].pos.makeMove(moves.entries[i]);
             if (!QSEARCH || smoves[cnt].pos.flags || inCheck)
-                  smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * (cnt + 1) * index % 1024,
+                  smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * (i + 1) * index % 1024,
 //                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * (i + 1) * index103 % max(512, 1024 - depth * 59),
 //                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * i * (index103 / 2) * ((index103 % 2 * 2) - 1) % max(256, 1024 - plyDist_ROOT * 70),
 //                smoves[cnt].sortPrio = moves.entries[i] == ttData.move ? -(1 << 30) : smoves[cnt].pos.evaluateFast(phase) + 79 * (i + 1) * index % 1024,

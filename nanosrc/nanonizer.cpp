@@ -59,13 +59,14 @@ StringSet noManglingWords{ "auto", "static", "const", "inline", "std", "chrono",
 
 // --- Try to optimize for lzma compression
 //          char shortNameChars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefgyijklmnozqrswuvthxp";
-          char shortNameChars[] = "ABCDEFGHIJKLMNOPQRSTUVWYZ_abcdefgyijklmnozqrswuvtXhxp";
+//          char shortNameChars[] = "ABCDEFGHIJKLMNOPQRSTUVWYZ_abcdefgyijklmnozqrswuvtXhxp";
+          char shortNameChars[] = "ABCDEFGHIJKLMNOPQRSTUVWYZ_abcdefgyijklmnozqrswuvtXhpx";
 constexpr auto shortNameChars_size = sizeof(shortNameChars) - 1;
 
           char shortNameCharsL2a[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefgyijklmnozqrswuvthxp";
 constexpr auto shortNameCharsL2a_size = sizeof(shortNameCharsL2a) - 1;
 
-          char shortNameCharsL2b[] = /*"wxyz";*/  /*"xphtHdlz"*/ "pxhtHdlz";
+          char shortNameCharsL2b[] = /*"wxyz";*/  /*"xphtHdlz"*/ "xphtHdlz";
 constexpr auto shortNameCharsL2b_size = sizeof(shortNameCharsL2b) - 1;
 
 StringSet shortnamesUsed;

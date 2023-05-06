@@ -651,11 +651,14 @@ struct SearchTest : Test<SearchTest>
         // TODO: DON'T WORK WITH LOW DEPTH - CHECK LATER  *** IMPORTANT **   *FIXED*
 //        DO_SEARCH("3k4/3p4/8/K1P4r/8/8/8/8 b - - 0 1", 16, 16, m==mkmove(H5,H4))
 
+        // startpos
+        DO_SEARCH("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 7, 11, m == m)
+
         // startpos after e2e4
-        DO_SEARCH("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1", 7, 10, m == m)
+        DO_SEARCH("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1", 7, 11, m == m)
 
         // startpos after e2e4 d7d5 e4d5
-        DO_SEARCH("rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2", 7, 10, m == m)
+        DO_SEARCH("rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2", 7, 9, m == m)
 
         // early endgame
         DO_SEARCH("5k2/3n1pp1/4p2p/1R6/6PP/3N4/r3PPK1/8 w - - 5 32", 11, 12, m == m)
@@ -677,7 +680,7 @@ struct SearchTest : Test<SearchTest>
 
         // "c3d5" is the winning move for white, "e2d3" gives white a small advantage, all other moves are draw
         // FIXED FOR UNKNOWN REASONS: TODO: DON'T WORK WITH DEPTH<9 - CHECK LATER  *FIXED*
-        DO_SEARCH("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", 5, 7, m==mkmove(C3,D5))
+        DO_SEARCH("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", 9, 10, m==mkmove(C3,D5))
 
         // mate in 1 "b2e2"
         DO_SEARCH("8/8/7K/8/5P2/3B4/1Q6/4k3 w - - 1 93", 3, 7, m==mkmove(B2,E2) )
